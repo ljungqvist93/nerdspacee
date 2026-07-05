@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.cashsmash.app",
+            "sha256_cert_fingerprints": [
+                "1A:92:C8:F1:DE:17:C7:77:E1:55:AA:5C:81:22:F1:BC:CE:E4:7A:2A:B0:F4:B5:51:E0:E3:BD:D5:79:9B:0E:2A"
+            ]
+        }
+    }
+]
