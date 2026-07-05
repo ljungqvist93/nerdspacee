@@ -20,6 +20,8 @@ class OverviewComponent extends Component
 
     public function render()
     {
-        return view('livewire.overview');
+        return view('livewire.overview', [
+            'facts' => Fact::latest()->get(),
+        ]);
     }
 }

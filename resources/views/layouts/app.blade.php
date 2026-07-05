@@ -22,7 +22,7 @@
     @livewireStyles
     @livewireScripts
 
-    <link rel="stylesheet" href="https://cashsmash.app/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="https://nerdspace.cashsmash.app/fontawesome/css/all.min.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

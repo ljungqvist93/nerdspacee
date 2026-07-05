@@ -75,45 +75,41 @@
                 </div>
             </div>
         @endif
-        <a href="/public/"
-            class="fixed left-0 top-0 m-4 bg-zinc-900 p-2 rounded-md text-red-300 hover:bg-black transition ease-in-out">Go
-            back</a>
+        <a href="/overview/"
+            class="fixed left-0 top-0 m-4 bg-zinc-900 p-2 rounded-md text-red-300 hover:bg-black transition ease-in-out">
+            Go back
+        </a>
         <ul class="fixed top-0 m-4 text-white right-0 mr-6 text-3xl">
-            <li wire:click="toggleImagePanel" class="cursor-pointer hover:text-green-400">
-                <i class="fas fa-image"></i>
-            </li>
-            <li class="mt-6"><button wire:click="togglePathMenu"><i class="fa-solid fa-note-sticky"></i></button></li>
-            <li class="mt-6">
             <li class="mt-6">
                 <button wire:click="toggleSettings">
                     <i class="fa-solid fa-cog"></i>
                 </button>
             </li>
-            </li>
-            <button wire:click="createNote" class="fixed right-20 m-4 top-0">
-                <i class="fa-solid fa-plus p-2 text-3xl bg-blue-300 rounded-md hover:bg-blue-500 cursor-pointer"></i>
-            </button>
 
         </ul>
         <div class="max-w-[1000px] m-auto mt-4">
             <div class="mb-4">
-                @if ($fact && $fact->thumb)
-                    <div class="relative group inline-block">
-                        <img src="{{ asset('/public/media/thumb/' . $fact->thumb) }}"
-                            class="w-[100px] h-[100px] object-cover rounded border border-white/20" />
+                <div class="flex flex-wrap gap-3">
 
-                        <button wire:click="removeThumb"
-                            class="absolute top-1 right-1 bg-red-600 text-white px-1 py-0.5 rounded text-xs opacity-0 group-hover:opacity-100 transition">
-                            ✕
-                        </button>
-                    </div>
-                @else
+                    @foreach($images as $image)
+                        <div class="relative group inline-block">
+                            <img src="{{ asset('/media/images/' . $image->name) }}"
+                                class="w-[300px] h-[400px] object-cover rounded border border-white/20" />
+
+                            <button wire:click="deleteImage({{ $image->id }})"
+                                class="absolute top-1 right-1 bg-red-600 text-white px-1 py-0.5 rounded text-xs opacity-0 group-hover:opacity-100 transition">
+                                ✕
+                            </button>
+                        </div>
+                    @endforeach
+
                     <label
                         class="cursor-pointer w-[100px] h-[100px] border border-dashed border-white/20 rounded flex items-center justify-center text-xs text-white/60 hover:bg-white/10 transition">
                         Upload
-                        <input type="file" wire:model="thumbUpload" accept=".webp" class="hidden" />
+                        <input type="file" wire:model="photo" accept=".webp" class="hidden" />
                     </label>
-                @endif
+
+                </div>
 
             </div>
 
@@ -121,9 +117,6 @@
 
                 <input type="text" id="input-title" wire:model.defer="title"
                     class="text-5xl text-red-300 font-black border-none outline-none w-full focus:outline-none focus:ring-0 bg-transparent p-0 m-0" />
-
-                <input type="text" id="input-subtitle" wire:model.defer="subtitle"
-                    class="text-2xl text-zinc-300 font-black border-none outline-none w-full focus:outline-none focus:ring-0 bg-transparent p-0 m-0 my-4" />
 
                 <div class="">
                     <div id="quill-editor-container" class="relative text-white" wire:ignore>
@@ -193,6 +186,22 @@
                             <option value="3"></option>
                         </select>
                     </span>
+                    <button id="insert-hr-button"
+                        class="bg-zinc-800 text-white text-sm px-2 py-1 rounded hover:bg-zinc-700">
+                        +
+                    </button><br>
+
+                    <!-- 👇 Text Color Picker -->
+                    <select class="ql-color">
+                        <option value=""></option>
+                        <option value="#ef4444"></option> <!-- red -->
+                        <option value="#3b82f6"></option> <!-- blue -->
+                        <option value="#22c55e"></option> <!-- green -->
+                        <option value="#f59e0b"></option> <!-- amber -->
+                        <option value="#8b5cf6"></option> <!-- violet -->
+                        <option value="#ffffff"></option> <!-- white -->
+                        <option value="#000000"></option> <!-- black -->
+                    </select><br>
                     <span class="ql-formats">
                         <button class="ql-bold"></button>
                         <button class="ql-italic"></button>

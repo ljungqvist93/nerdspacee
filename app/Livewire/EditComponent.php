@@ -69,29 +69,17 @@ class EditComponent extends Component
         $this->saveTagsAndCategory();
     }
 
-    # Thumb upload
-
-
-    public function togglePathMenu()
+    public function mount($id)
     {
-        $this->showPathMenu = !$this->showPathMenu;
+        $this->id = $id;
 
-        if ($this->showPathMenu) {
-            $fact = Tag::with(['parent', 'notes.notes.notes'])->findOrFail($this->id);
-            $this->factPath = $fact->getPath();
-            $this->childNotes = $fact->notes;
-        }
-    }
-
-    public function mount()
-    {
         $fact = Fact::with('tags')->findOrFail($this->id);
 
         $this->title = $fact->title;
+        $this->text = $fact->text ?? '';
         $this->selectedCategoryId = $fact->category_id;
         $this->selectedTagIds = $fact->tags->pluck('id')->toArray();
     }
-
 
     public function refreshNotes()
     {
@@ -132,17 +120,12 @@ class EditComponent extends Component
 
     public function autoSave($title, $subtitle, $text)
     {
-        $fact = Tag::findOrFail($this->id);
+        $fact = Fact::findOrFail($this->id);
 
         $updated = false;
 
         if ($fact->title !== $title) {
             $fact->title = $title;
-            $updated = true;
-        }
-
-        if ($fact->subtitle !== $subtitle) {
-            $fact->subtitle = $subtitle;
             $updated = true;
         }
 
@@ -162,6 +145,11 @@ class EditComponent extends Component
 
     }
 
+    public function updatedPhoto()
+    {
+        $this->uploadImage();
+    }
+
     public function uploadImage()
     {
         $this->validate([
@@ -170,14 +158,14 @@ class EditComponent extends Component
 
         $filename = Str::random(10) . '.webp';
 
-        // Store the file using Laravel’s Filesystem
         Storage::disk('images')->putFileAs('', $this->photo, $filename);
 
-        // Save to DB
         Image::create([
+            'fact_id' => $this->id,
             'name' => $filename,
-            'topic_id' => $this->id,
         ]);
+
+        $this->reset('photo');
 
         session()->flash('message', '✅ Image uploaded!');
     }
@@ -198,23 +186,6 @@ class EditComponent extends Component
     public function toggleImagePanel()
     {
         $this->showImages = !$this->showImages;
-    }
-
-    public function createNote()
-    {
-        // Find the current maximum sort_order for this parent
-        $maxSortOrder = Tag::where('parent_id', $this->id)->max('sort_order') ?? 0;
-
-        $note = Tag::create([
-            'title' => 'Untitled Note',
-            'subtitle' => 'Subtitle',
-            'text' => 'Note text here',
-            'pinned' => 0,
-            'sort_order' => $maxSortOrder + 1, // 🌟 assign correctly
-            'parent_id' => $this->id, // the parent topic ID
-        ]);
-
-        return redirect()->to("/topic/{$note->id}");
     }
 
     public function toggleSettings()

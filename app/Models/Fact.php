@@ -17,12 +17,17 @@ class Fact extends Model
         'sources',
     ];
 
-    public function category(): BelongsTo
+    public function images()
+    {
+        return $this->hasMany(Image::class);
+    }
+
+    public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function tags(): BelongsToMany
+    public function tags()
     {
         return $this->belongsToMany(Tag::class);
     }
