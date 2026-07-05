@@ -12,9 +12,12 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('guest')
     ->name('register');
 
+Route::get('/login', function () {
+    return view('login.login');
+})->middleware('guest')->name('login');
+
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-    ->middleware('guest')
-    ->name('login');
+    ->middleware('guest');
 
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
     ->middleware('guest')

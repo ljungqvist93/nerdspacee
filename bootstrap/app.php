@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->stopIgnoring(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
     })->create();
+
+
