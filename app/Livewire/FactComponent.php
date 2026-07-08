@@ -18,6 +18,9 @@ class FactComponent extends Component
 
     public array $recentFactIds = [];
 
+    protected int $bufferSize = 15;
+    protected int $refillThreshold = 5;
+
     protected int $queueSize = 5;
 
     public function mount(Fact $fact)
@@ -43,42 +46,59 @@ class FactComponent extends Component
             }
         }
 
-        $this->fact = array_shift($this->queue);
+        $id = (int) array_shift($this->queue);
+
+        $this->fact = Fact::findOrFail($id)->load([
+            'category',
+            'tags',
+            'images',
+        ]);
 
         $this->recentFactIds[] = $this->fact->id;
-
         $this->recentFactIds = array_slice($this->recentFactIds, -50);
 
-        $this->fillQueue();
+        if (count($this->queue) <= $this->refillThreshold) {
+            $this->fillQueue();
+        }
 
         $this->dispatch('fact-changed', url: route('fact.show', $this->fact->slug));
     }
 
     protected function fillQueue(): void
     {
+        $historyReset = false;
+
         while (count($this->queue) < $this->queueSize) {
 
             $exclude = array_merge(
                 $this->recentFactIds,
-                collect($this->queue)->pluck('id')->all(),
+                $this->queue,
                 [$this->fact->id]
             );
 
-            $fact = Fact::whereHas('images')
-                ->whereNotIn('id', $exclude)
-                ->with([
-                    'category:id,name,color,icon',
-                    'tags:id,name',
-                    'images:id,fact_id,name',
-                ])
-                ->inRandomOrder()
-                ->first();
+            $missing = $this->bufferSize - count($this->queue);
 
-            if (!$fact) {
-                break;
+            $ids = Fact::whereHas('images')
+                ->where('published', true)
+                ->whereNotIn('id', $exclude)
+                ->inRandomOrder()
+                ->limit($missing)
+                ->pluck('id')
+                ->all();
+
+            if (empty($ids)) {
+
+                if ($historyReset) {
+                    break;
+                }
+
+                $this->recentFactIds = [];
+                $historyReset = true;
+
+                continue;
             }
 
-            $this->queue[] = $fact;
+            $this->queue = array_merge($this->queue, $ids);
         }
     }
 

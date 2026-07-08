@@ -116,7 +116,14 @@ class EditComponent extends Component
         }
     }
 
+    public function togglePublished()
+    {
+        $fact = Fact::findOrFail($this->id);
 
+        $fact->published = !$fact->published;
+
+        $fact->save();
+    }
 
     public function autoSave($title, $subtitle, $text)
     {

@@ -15,6 +15,7 @@ class Fact extends Model
         'slug',
         'length',
         'sources',
+        'published'
     ];
 
     public function images()
