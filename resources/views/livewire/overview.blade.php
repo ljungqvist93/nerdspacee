@@ -9,7 +9,7 @@
         @foreach($facts as $fact)
             <div class="bg-zinc-800 rounded-lg mt-4 pl-4 flex justify-between items-center">
                 <div class="font-bold">
-                    <a href="{{ route('fact.show', ['id' => $fact->id]) }}">
+                    <a href="{{ route('fact.show', $fact->slug) }}">
                         {{ $fact->title }}
                     </a>
                 </div>

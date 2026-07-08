@@ -115,10 +115,11 @@
 
             <form action="">
 
-                <input type="text" id="input-title" wire:model.defer="title"
+                <textarea type="text" id="input-title" wire:model.defer="title" rows="2"
                     class="text-5xl text-red-300 font-black border-none outline-none w-full focus:outline-none focus:ring-0 bg-transparent p-0 m-0" />
+                </textarea>
 
-                <div class="">
+                <div class="mt-10">
                     <div id="quill-editor-container" class="relative text-white" wire:ignore>
                         <div id="quill-editor" class="text-white border-none !text-xl bg-transparent overflow-hidden">
                             {!! $text !!}

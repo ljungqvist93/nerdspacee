@@ -22,6 +22,11 @@ class Fact extends Model
         return $this->hasMany(Image::class);
     }
 
+    public function getCoverImageAttribute()
+    {
+        return $this->images->first();
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -30,5 +35,10 @@ class Fact extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 }

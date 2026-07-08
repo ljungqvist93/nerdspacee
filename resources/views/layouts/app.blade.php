@@ -29,6 +29,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
         rel="stylesheet">
 
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#09090b">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nerdspace">
+
+    <link rel="apple-touch-icon" href="/icons/icon-192.PNG">
+
     <script>
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');

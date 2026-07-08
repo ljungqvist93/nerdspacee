@@ -126,6 +126,7 @@ class EditComponent extends Component
 
         if ($fact->title !== $title) {
             $fact->title = $title;
+            $fact->slug = Str::slug($title);
             $updated = true;
         }
 
@@ -136,13 +137,12 @@ class EditComponent extends Component
 
         if ($updated) {
             $fact->save();
-            logger("✅ Topic #{$this->id} autosaved with changes.");
+            logger("✅ Fact #{$this->id} autosaved with changes.");
         } else {
             logger("ℹ️ No changes detected, skipped save.");
         }
 
         $this->saveTagsAndCategory();
-
     }
 
     public function updatedPhoto()
