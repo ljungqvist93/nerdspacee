@@ -25,28 +25,20 @@
     @if($fact->coverImage)
         <section wire:click="randomFact" class="relative min-h-[100svh] cursor-pointer group overflow-hidden">
 
-            <img src="{{ asset('media/images/' . $fact->coverImage->name) }}" alt="{{ strip_tags($fact->title) }}"
+            <img src="{{ asset('media/images/' . $fact->coverImage->name) }}" alt="{{ $fact->title }}"
                 class="absolute inset-0 h-full w-full object-cover bg-black">
 
-            <div class="absolute inset-x-0 bottom-0 h-[40%]  bg-gradient-to-t from-black via-black/75 to-transparent">
-            </div>
+            <div class="absolute bottom-0 left-0 right-0 p-6">
 
-            <div class="absolute bottom-0 left-0 right-0 p-6 z-10">
-
-                @if($fact->category)
-                    <div class="flex justify-center mb-3">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-zinc-900 font-semibold shadow-lg bg-{{ $fact->category->color }}-300"
-                            @if($fact->category->icon) <i class="fas fa-{{ $fact->category->icon }}"></i> @endif
-
-                            <span>{{ $fact->category->name }}</span>
-                        </div>
-                    </div>
-
-                @endif
-
-                <h1 class="fact-title text-4xl font-black leading-[1.25] text-white text-center">
+                <h1
+                    class="fact-title text-4xl leading-[1.4] mb-2 [&>p]:inline [&>p]:bg-white opacity-90 [&>p]:text-black [&>p]:px-4 [&>p]:py-1 [&>p]:[box-decoration-break:clone] [&>p]:[-webkit-box-decoration-break:clone]">
                     {!! $fact->title !!}
                 </h1>
+
+                <div class="text-center mt-8 text-zinc-400">
+                    <span>Scroll for Info</span>
+                    <i class="fas fa-arrow-down"></i>
+                </div>
 
             </div>
 
@@ -71,7 +63,8 @@
 
     </article>
 
-    <div x-show="showButtons" x-transition.opacity.duration.250ms class="fixed right-6 bottom-4 flex gap-3 z-50">
+    <div x-show="showButtons" x-transition.opacity.duration.250ms
+        class="fixed right-6 bottom-4 flex flex-col gap-3 z-50">
 
         <button x-show="!installed"
             class="bg-blue-300 hover:bg-blue-400 transition p-3 rounded-full w-[60px] h-[60px] shadow-lg">

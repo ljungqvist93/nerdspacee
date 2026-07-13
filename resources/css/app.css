@@ -2,4 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* your custom styles here */
+/* Title — shade 400 */
+/* Titles — shade 400 */
+/* Titles — 400 */
+
+#quill-title .ql-color-red,
+.fact-title .ql-color-red {
+    @apply !text-red-400;
+}
+
+#quill-title .ql-color-blue,
+.fact-title .ql-color-blue {
+    @apply !text-blue-400;
+}
+
+#quill-title .ql-color-green,
+.fact-title .ql-color-green {
+    @apply !text-green-400;
+}
+
+#quill-title .ql-color-amber,
+.fact-title .ql-color-amber {
+    @apply !text-amber-400;
+}
+
+#quill-title .ql-color-violet,
+.fact-title .ql-color-violet {
+    @apply !text-violet-400;
+}
+
+
+/* Body text — 300 */
+
+#quill-editor .ql-color-red,
+.fact-text .ql-color-red {
+    @apply !text-red-300;
+}
+
+#quill-editor .ql-color-blue,
+.fact-text .ql-color-blue {
+    @apply !text-blue-300;
+}
+
+#quill-editor .ql-color-green,
+.fact-text .ql-color-green {
+    @apply !text-green-300;
+}
+
+#quill-editor .ql-color-amber,
+.fact-text .ql-color-amber {
+    @apply !text-amber-300;
+}
+
+#quill-editor .ql-color-violet,
+.fact-text .ql-color-violet {
+    @apply !text-violet-300;
+}
+
+.ql-color-white {
+    @apply !text-white;
+}
+
+.ql-color-black {
+    @apply !text-black;
+}

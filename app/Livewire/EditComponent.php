@@ -116,6 +116,17 @@ class EditComponent extends Component
         }
     }
 
+    public function toggleTitleCase()
+    {
+        $fact = Fact::findOrFail($this->id);
+
+        $fact->title_case = !$fact->title_case;
+
+        $fact->save();
+
+        $this->redirect(request()->header('Referer'));
+    }
+
     public function togglePublished()
     {
         $fact = Fact::findOrFail($this->id);
@@ -133,7 +144,7 @@ class EditComponent extends Component
 
         if ($fact->title !== $title) {
             $fact->title = $title;
-            $fact->slug = Str::slug($title);
+            $fact->slug = Str::slug(strip_tags($title));
             $updated = true;
         }
 

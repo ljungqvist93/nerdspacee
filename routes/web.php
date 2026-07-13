@@ -1,19 +1,14 @@
 <?php
 
-use App\Models\Fact;
+use App\Livewire\EditComponent;
 use App\Livewire\FactComponent;
 use App\Livewire\OverviewComponent;
+use App\Livewire\PreviewComponent;
 use Illuminate\Support\Facades\Route;
-use App\Livewire\EditComponent;
 
-Route::get('/', function () {
-    $fact = Fact::inRandomOrder()->firstOrFail();
-
-    return redirect()->route('fact.show', $fact);
-});
-
+Route::get('/', FactComponent::class)->name('home');
 Route::get('/fact', FactComponent::class)->name('fact');
-Route::get('/fact/{fact}', FactComponent::class)->name('fact.show');
+Route::get('/fact/{fact:slug}', FactComponent::class)->name('fact.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/fact/{id}/edit', EditComponent::class)
@@ -21,6 +16,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/overview', OverviewComponent::class)
         ->name('overview');
+
+    Route::get('/preview/{fact:slug}', PreviewComponent::class)
+        ->name('fact.preview');
 });
 
 require __DIR__ . '/auth.php';

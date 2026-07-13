@@ -23,13 +23,25 @@ class FactComponent extends Component
 
     protected int $queueSize = 5;
 
-    public function mount(Fact $fact)
+    public function mount(?Fact $fact = null)
     {
-        $this->fact = $fact->load([
-            'category',
-            'tags',
-            'images',
-        ]);
+        $query = Fact::whereHas('images')
+            ->where('published', true)
+            ->with([
+                'category',
+                'tags',
+                'images',
+            ]);
+
+        if ($fact) {
+            $this->fact = (clone $query)
+                ->whereKey($fact->id)
+                ->firstOrFail();
+        } else {
+            $this->fact = (clone $query)
+                ->inRandomOrder()
+                ->firstOrFail();
+        }
 
         $this->recentFactIds[] = $this->fact->id;
 

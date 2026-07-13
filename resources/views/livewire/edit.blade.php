@@ -84,6 +84,16 @@
                 <button wire:click="toggleSettings">
                     <i class="fa-solid fa-cog"></i>
                 </button>
+                <a href="{{ route('fact.preview', $fact->slug) }}" target="_blank" rel="noopener noreferrer">
+                    Open
+                </a>
+                <button wire:click="togglePublished"
+                    class="{{ $fact->published ? 'bg-red-500' : 'bg-green-500' }} text-white px-4 py-2 rounded">
+                    {{ $fact->published ? 'Unpublish' : 'Publish' }}
+                </button>
+                <button wire:click="toggleTitleCase" class="px-3 py-2 rounded bg-zinc-700 text-white">
+                    {{ $fact->title_case ? 'Disable Title Case' : 'Enable Title Case' }}
+                </button>
             </li>
 
         </ul>
@@ -115,16 +125,47 @@
 
             <form action="">
 
-                <textarea type="text" id="input-title" wire:model.defer="title" rows="2"
-                    class="text-5xl text-red-300 font-black border-none outline-none w-full focus:outline-none focus:ring-0 bg-transparent p-0 m-0" />
-                </textarea>
+                <div id="quill-title" wire:ignore class="title">
+                    {!! $title !!}
+                </div>
 
-                <div class="mt-10">
-                    <div id="quill-editor-container" class="relative text-white" wire:ignore>
-                        <div id="quill-editor" class="text-white border-none !text-xl bg-transparent overflow-hidden">
-                            {!! $text !!}
+                <input type="hidden" id="hidden-title-input" wire:model.defer="title">
+
+                <div class="" wire:ignore>
+                    <div id="quill-title-toolbar" class="mb-6 text-white">
+                        <!-- Text Color -->
+                        <select class="ql-color">
+                            <option value=""></option>
+                            <option value="red"></option>
+                            <option value="blue"></option>
+                            <option value="green"></option>
+                            <option value="amber"></option>
+                            <option value="violet"></option>
+                            <option value="white"></option>
+                            <option value="black"></option>
+                        </select>
+
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                        </span>
+
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </div>
+                </div>
+
+                <div class=" pb-40">
+                    <div class="mt-10">
+                        <div id="quill-editor-container" class="relative text-white" wire:ignore>
+                            <div id="quill-editor"
+                                class="text-white border-none !text-xl bg-transparent overflow-hidden">
+                                {!! $text !!}
+                            </div>
+                            <input type="hidden" id="hidden-quill-input" name="text" class="text-white p-0 m-0">
                         </div>
-                        <input type="hidden" id="hidden-quill-input" name="text" class="text-white p-0 m-0">
                     </div>
                 </div>
 
@@ -134,44 +175,276 @@
                         padding: 0;
                     }
                 </style>
-
                 <script>
                     window.addEventListener('load', () => {
+                        if (typeof Quill === 'undefined') {
+                            console.error('❌ Quill is not loaded');
+                            return;
+                        }
+
+                        /*
+                         * Register class-based colors before loading the saved HTML
+                         */
+                        const ColorClass = Quill.import('attributors/class/color');
+
+                        ColorClass.whitelist = [
+                            'red',
+                            'blue',
+                            'green',
+                            'amber',
+                            'violet',
+                            'white',
+                            'black'
+                        ];
+
+                        Quill.register(ColorClass, true);
+
+                        /*
+                         * The body editor has already been created elsewhere
+                         */
                         const quill = window.quillInstance;
-                        if (!quill) return console.warn('❌ Quill not initialized');
 
-                        const titleInput = document.getElementById('input-title');
-                        const subtitleInput = document.getElementById('input-subtitle');
-                        const hiddenInput = document.getElementById('hidden-quill-input');
+                        if (!quill) {
+                            console.error('❌ Body Quill is not initialized');
+                            return;
+                        }
 
+                        const Delta = Quill.import('delta');
+
+                        const titleCaseEnabled = @json($fact->title_case);
+                        const initialTitleHtml = @json($title);
+                        const initialBodyHtml = @json($text);
+
+                        const hiddenTitleInput =
+                            document.getElementById('hidden-title-input');
+
+                        const hiddenBodyInput =
+                            document.getElementById('hidden-quill-input');
+
+                        /*
+                         * Create title editor after class colors are registered
+                         */
+                        const titleQuill = new Quill('#quill-title', {
+                            theme: 'snow',
+                            placeholder: 'Title...',
+                            modules: {
+                                toolbar: '#quill-title-toolbar',
+                            },
+                        });
+
+                        /*
+                         * Reload both saved HTML values after registering ColorClass.
+                         * This makes the body editor recognize ql-color-red,
+                         * ql-color-blue, etc.
+                         */
+                        titleQuill.clipboard.dangerouslyPasteHTML(
+                            initialTitleHtml || ''
+                        );
+
+                        quill.clipboard.dangerouslyPasteHTML(
+                            initialBodyHtml || ''
+                        );
+
+                        /*
+                         * Title-case settings
+                         */
+                        const smallWords = [
+                            'a',
+                            'an',
+                            'and',
+                            'as',
+                            'at',
+                            'but',
+                            'by',
+                            'for',
+                            'from',
+                            'in',
+                            'nor',
+                            'of',
+                            'on',
+                            'or',
+                            'the',
+                            'to',
+                            'up',
+                            'with'
+                        ];
+
+                        const toTitleCase = (text) => {
+                            const words = text.match(/\S+|\s+/g) || [];
+
+                            const wordIndexes = words
+                                .map((part, index) => {
+                                    return /\S/.test(part) ? index : null;
+                                })
+                                .filter((index) => index !== null);
+
+                            return words
+                                .map((part, index) => {
+                                    if (!/\S/.test(part)) {
+                                        return part;
+                                    }
+
+                                    const clean = part.toLowerCase();
+
+                                    const isFirstWord =
+                                        index === wordIndexes[0];
+
+                                    const isLastWord =
+                                        index === wordIndexes[wordIndexes.length - 1];
+
+                                    if (
+                                        !isFirstWord &&
+                                        !isLastWord &&
+                                        smallWords.includes(clean)
+                                    ) {
+                                        return clean;
+                                    }
+
+                                    return (
+                                        clean.charAt(0).toUpperCase() +
+                                        clean.slice(1)
+                                    );
+                                })
+                                .join('');
+                        };
+
+                        /*
+                         * Autosave
+                         */
                         let typingTimer;
+                        let updatingTitle = false;
+
                         const debounceDelay = 2000;
 
                         const triggerAutosave = () => {
                             clearTimeout(typingTimer);
+
                             typingTimer = setTimeout(() => {
-                                const title = titleInput?.value || '';
-                                const subtitle = subtitleInput?.value || '';
+                                const title = titleQuill.root.innerHTML;
+                                const subtitle = '';
+                                const text = quill.root.innerHTML;
 
-                                // 🧠 Always update hidden input before autosaving
-                                hiddenInput.value = quill.root.innerHTML;
+                                if (hiddenTitleInput) {
+                                    hiddenTitleInput.value = title;
+                                }
 
-                                const text = hiddenInput.value;
+                                if (hiddenBodyInput) {
+                                    hiddenBodyInput.value = text;
+                                }
 
                                 console.log('[autosave after 2s pause]', {
                                     title,
-                                    subtitle,
-                                    text: text.slice(0, 100) + '...'
+                                    text: text.slice(0, 100) + '...',
                                 });
 
                                 @this.autoSave(title, subtitle, text);
                             }, debounceDelay);
                         };
 
-                        // Listen to typing in Quill (the input is updated via Quill's event in app.js)
-                        quill.on('text-change', triggerAutosave);
-                        titleInput?.addEventListener('input', triggerAutosave);
-                        subtitleInput?.addEventListener('input', triggerAutosave);
+                        /*
+                         * Preserve formatting while applying title case
+                         */
+                        const normalizeTitle = () => {
+                            if (!titleCaseEnabled) {
+                                triggerAutosave();
+                                return;
+                            }
+
+                            if (updatingTitle) {
+                                return;
+                            }
+
+                            const selection = titleQuill.getSelection();
+                            const currentText = titleQuill.getText();
+
+                            const textWithoutFinalNewline =
+                                currentText.endsWith('\n')
+                                    ? currentText.slice(0, -1)
+                                    : currentText;
+
+                            const converted =
+                                toTitleCase(textWithoutFinalNewline);
+
+                            if (converted === textWithoutFinalNewline) {
+                                triggerAutosave();
+                                return;
+                            }
+
+                            updatingTitle = true;
+
+                            let patch = new Delta();
+                            let cursor = 0;
+
+                            for (
+                                let i = 0;
+                                i < textWithoutFinalNewline.length;
+                                i++
+                            ) {
+                                const oldChar =
+                                    textWithoutFinalNewline[i];
+
+                                const newChar =
+                                    converted[i];
+
+                                if (oldChar === newChar) {
+                                    cursor++;
+                                    continue;
+                                }
+
+                                if (cursor > 0) {
+                                    patch = patch.retain(cursor);
+                                    cursor = 0;
+                                }
+
+                                const formats =
+                                    titleQuill.getFormat(i, 1);
+
+                                patch = patch
+                                    .delete(1)
+                                    .insert(newChar, formats);
+                            }
+
+                            if (patch.ops.length > 0) {
+                                titleQuill.updateContents(
+                                    patch,
+                                    'api'
+                                );
+                            }
+
+                            if (selection) {
+                                titleQuill.setSelection(
+                                    selection.index,
+                                    selection.length,
+                                    'silent'
+                                );
+                            }
+
+                            updatingTitle = false;
+
+                            triggerAutosave();
+                        };
+
+                        titleQuill.on(
+                            'text-change',
+                            (delta, oldDelta, source) => {
+                                if (source === 'api') {
+                                    return;
+                                }
+
+                                normalizeTitle();
+                            }
+                        );
+
+                        quill.on(
+                            'text-change',
+                            (delta, oldDelta, source) => {
+                                if (source === 'api') {
+                                    return;
+                                }
+
+                                triggerAutosave();
+                            }
+                        );
                     });
                 </script>
 
@@ -195,13 +468,13 @@
                     <!-- 👇 Text Color Picker -->
                     <select class="ql-color">
                         <option value=""></option>
-                        <option value="#ef4444"></option> <!-- red -->
-                        <option value="#3b82f6"></option> <!-- blue -->
-                        <option value="#22c55e"></option> <!-- green -->
-                        <option value="#f59e0b"></option> <!-- amber -->
-                        <option value="#8b5cf6"></option> <!-- violet -->
-                        <option value="#ffffff"></option> <!-- white -->
-                        <option value="#000000"></option> <!-- black -->
+                        <option value="red"></option>
+                        <option value="blue"></option>
+                        <option value="green"></option>
+                        <option value="amber"></option>
+                        <option value="violet"></option>
+                        <option value="white"></option>
+                        <option value="black"></option>
                     </select><br>
                     <span class="ql-formats">
                         <button class="ql-bold"></button>
@@ -264,6 +537,36 @@
 
                 #quill-editor .ql-editor {
                     background-color: transparent;
+                }
+
+                #quill-editor {
+                    border: none;
+                }
+
+                #quill-title.ql-container {
+                    border: none !important;
+                }
+
+                #quill-title .ql-editor {
+                    font-size: 36px;
+                    font-weight: 800;
+                    line-height: 1.1;
+                    padding: 0;
+                }
+
+                .title,
+                .title .ql-editor {
+                    font-family: "Fredoka", sans-serif;
+                    font-weight: 900;
+                }
+
+                #quill-editor .ql-editor {
+                    color: white;
+                    font-family: "Fredoka", sans-serif;
+                    font-size: 20px;
+                    font-weight: 400;
+                    line-height: 1.7;
+                    padding: 0;
                 }
             </style>
 
